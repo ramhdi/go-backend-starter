@@ -1,0 +1,16 @@
+# for development only, for production use env
+server:
+  port: 8080
+  environment: development # development or production
+
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: myapp
+  sslmode: disable
+
+jwt:
+  secret: your-secret-key-here
+  expiration: 60 # minutes
