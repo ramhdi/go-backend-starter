@@ -13,7 +13,8 @@ import (
 	"go-backend-starter/internal/api/routes"
 	"go-backend-starter/internal/config"
 	"go-backend-starter/internal/db/postgres"
-	"go-backend-starter/internal/domain/services"
+	"go-backend-starter/internal/repository"
+	"go-backend-starter/internal/service"
 	"go-backend-starter/internal/utils"
 
 	"github.com/gin-gonic/gin"
@@ -47,13 +48,10 @@ func main() {
 	defer db.Close()
 	log.Info().Msg("Database connection established")
 
-	// Initialize services
-	userService := services.NewUserService(db.Pool)
-	authService := services.NewAuthService(userService, cfg.JWT.Secret, cfg.JWT.Expiration)
-
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService)
-	userHandler := handlers.NewUserHandler(userService)
+	// Initialize layers
+	repo := repository.NewPostgresRepository(db.Pool)
+	srvc := service.NewService(repo, cfg.JWT.Secret, cfg.JWT.Expiration)
+	handler := handlers.NewHandler(srvc)
 
 	// Set up Gin router
 	if cfg.Server.Environment == "production" {
@@ -63,7 +61,7 @@ func main() {
 	router.Use(gin.Recovery())
 
 	// Set up routes
-	routes.Setup(router, authHandler, userHandler, authService)
+	routes.Setup(router, handler, srvc)
 
 	// Create server
 	srv := &http.Server{

@@ -1,30 +1,16 @@
-package services
+package service
 
 import (
 	"context"
 	"errors"
 	"fmt"
-
-	"go-backend-starter/internal/domain/models"
+	"go-backend-starter/internal/models"
 	"go-backend-starter/internal/utils"
 )
 
-type AuthService struct {
-	userService   *UserService
-	jwtSecret     string
-	jwtExpiration int
-}
-
-func NewAuthService(userService *UserService, jwtSecret string, jwtExpiration int) *AuthService {
-	return &AuthService{
-		userService:   userService,
-		jwtSecret:     jwtSecret,
-		jwtExpiration: jwtExpiration,
-	}
-}
-
-func (s *AuthService) Login(ctx context.Context, input *models.LoginInput) (string, error) {
-	user, err := s.userService.GetUserByUsername(ctx, input.Username)
+// Login authenticates a user and returns a JWT token
+func (s *Service) Login(ctx context.Context, input *models.LoginInput) (string, error) {
+	user, err := s.repo.GetUserByUsername(ctx, input.Username)
 	if err != nil {
 		return "", fmt.Errorf("failed to get user: %w", err)
 	}
@@ -44,7 +30,8 @@ func (s *AuthService) Login(ctx context.Context, input *models.LoginInput) (stri
 	return token, nil
 }
 
-func (s *AuthService) ValidateToken(tokenString string) (*utils.JWTClaims, error) {
+// ValidateToken validates a JWT token and returns the claims
+func (s *Service) ValidateToken(tokenString string) (*utils.JWTClaims, error) {
 	claims, err := utils.ValidateJWT(tokenString, s.jwtSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate token: %w", err)

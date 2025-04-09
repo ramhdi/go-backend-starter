@@ -1,56 +1,47 @@
 package routes
 
 import (
-	"net/http"
-	"strconv"
-
 	"go-backend-starter/internal/api/handlers"
 	"go-backend-starter/internal/api/middleware"
-	"go-backend-starter/internal/domain/services"
+	"go-backend-starter/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Setup(
-	router *gin.Engine,
-	authHandler *handlers.AuthHandler,
-	userHandler *handlers.UserHandler,
-	authService *services.AuthService,
-) {
+// Setup configures all API routes
+func Setup(router *gin.Engine, handler *handlers.Handler, service *service.Service) {
 	// Apply global middleware
 	router.Use(middleware.LoggerMiddleware())
 	router.Use(middleware.CorsMiddleware())
 
 	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	router.GET("/healthz", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Auth routes
-	auth := router.Group("/api/auth")
+	// Public routes
+	api := router.Group("/api")
 	{
-		auth.POST("/login", authHandler.Login)
+		// Auth routes
+		api.POST("/auth/login", handler.Login)
 	}
 
-	// API routes that require authentication
-	api := router.Group("/api")
-	api.Use(middleware.AuthMiddleware(authService))
+	// Protected routes
+	protected := api.Group("")
+	protected.Use(middleware.AuthMiddleware(service))
 	{
 		// User routes - admin only
-		users := api.Group("/users")
+		users := protected.Group("/users")
 		users.Use(middleware.RequireRole("admin"))
 		{
-			users.POST("", userHandler.Create)
-			users.GET("", userHandler.List)
-			users.GET("/:id", userHandler.Get)
-			users.PUT("/:id", userHandler.Update)
-			users.DELETE("/:id", userHandler.Delete)
+			users.POST("", handler.CreateUser)
+			users.GET("", handler.ListUsers)
+			users.GET("/:id", handler.GetUser)
+			users.PUT("/:id", handler.UpdateUser)
+			users.DELETE("/:id", handler.DeleteUser)
 		}
 
-		// Current user route - all authenticated users
-		api.GET("/me", func(c *gin.Context) {
-			userID, _ := c.Get("userID")
-			c.Redirect(http.StatusTemporaryRedirect, "/api/users/"+strconv.Itoa(userID.(int)))
-		})
+		// Current user route - for any authenticated user
+		protected.GET("/me", handler.GetCurrentUser)
 	}
 }

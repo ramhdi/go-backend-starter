@@ -1,6 +1,6 @@
 # for development only, for production use env
 server:
-  port: 8080
+  port: 8081
   environment: development # development or production
 
 database:

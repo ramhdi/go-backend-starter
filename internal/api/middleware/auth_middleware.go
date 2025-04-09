@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"strings"
 
-	"go-backend-starter/internal/domain/services"
+	"go-backend-starter/internal/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
-func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
+func AuthMiddleware(service *service.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -27,7 +27,7 @@ func AuthMiddleware(authService *services.AuthService) gin.HandlerFunc {
 
 		// Validate token
 		tokenString := parts[1]
-		claims, err := authService.ValidateToken(tokenString)
+		claims, err := service.ValidateToken(tokenString)
 		if err != nil {
 			log.Error().Err(err).Str("token", tokenString).Msg("Invalid token")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
