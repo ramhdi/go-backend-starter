@@ -17,7 +17,7 @@ A production-ready REST API server template using Go, Gin, PostgreSQL, and JWT a
 ## Project Structure
 
 ```
-my-app/
+go-backend-starter/
 ├── cmd/
 │   └── server/            # Application entry point
 │       └── main.go
@@ -27,12 +27,12 @@ my-app/
 │   │   ├── middleware/    # HTTP middleware
 │   │   └── routes/        # Route definitions
 │   ├── config/            # Configuration
-│   ├── domain/            # Domain layer
-│   │   ├── models/        # Data structures
-│   │   └── services/      # Business logic
 │   ├── db/                # Database layer
 │   │   ├── postgres/      # Postgres connection
 │   │   └── migrations/    # SQL migration files
+│   ├── models/            # Domain models and DTOs
+│   ├── repository/        # Data access layer
+│   ├── service/           # Business logic layer
 │   └── utils/             # Utility functions
 ├── Dockerfile             # Docker image definition
 ├── docker-compose.yml     # Docker services configuration
@@ -96,7 +96,6 @@ my-app/
 
 2. Run with Docker Compose:
    ```bash
-   # Uncomment the app service in docker-compose.yml first
    docker-compose up -d
    ```
 
@@ -108,7 +107,7 @@ my-app/
 
 ### Users (Admin only)
 
-- `GET /api/users` - List all users
+- `GET /api/users` - List all users with pagination
 - `GET /api/users/:id` - Get user by ID
 - `POST /api/users` - Create a new user
 - `PUT /api/users/:id` - Update a user
@@ -117,6 +116,10 @@ my-app/
 ### Current User
 
 - `GET /api/me` - Get current user information
+
+### Health Check
+
+- `GET /healthz` - Simple health check endpoint
 
 ## Configuration
 
@@ -129,7 +132,7 @@ The application can be configured using:
 
 | Variable           | Description                          | Default              |
 | ------------------ | ------------------------------------ | -------------------- |
-| SERVER_PORT        | HTTP server port                     | 8080                 |
+| SERVER_PORT        | HTTP server port                     | 8081                 |
 | SERVER_ENVIRONMENT | Environment (development/production) | development          |
 | DATABASE_HOST      | PostgreSQL host                      | localhost            |
 | DATABASE_PORT      | PostgreSQL port                      | 5432                 |
@@ -139,6 +142,25 @@ The application can be configured using:
 | DATABASE_SSLMODE   | PostgreSQL SSL mode                  | disable              |
 | JWT_SECRET         | Secret key for JWT signing           | your-secret-key-here |
 | JWT_EXPIRATION     | JWT token expiration (minutes)       | 60                   |
+
+## Project Components
+
+### Layers
+
+- **API Layer (internal/api)**: Handles HTTP requests and responses
+- **Service Layer (internal/service)**: Contains business logic
+- **Repository Layer (internal/repository)**: Manages data access
+- **Domain Models (internal/models)**: Defines data structures
+- **Configuration (internal/config)**: Manages application settings
+- **Database (internal/db)**: Handles database connections and migrations
+- **Utilities (internal/utils)**: Contains helper functions
+
+### Middleware
+
+- **Authentication**: Validates JWT tokens and sets user context
+- **Authorization**: Controls access based on user roles
+- **CORS**: Configures Cross-Origin Resource Sharing
+- **Logging**: Records API requests and responses
 
 ## Default Admin User
 
@@ -150,6 +172,14 @@ The migration script creates a default admin user:
 - **Role**: admin
 
 > **Note**: Change these credentials in production!
+
+## Security Features
+
+- Password hashing with bcrypt
+- JWT-based authentication
+- Role-based access control
+- HTTP security headers via CORS middleware
+- Secure HTTP responses (no sensitive data exposure)
 
 ## License
 
